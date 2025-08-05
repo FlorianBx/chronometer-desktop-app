@@ -1,4 +1,9 @@
-# Chronometer
+# Tempo
+
+[![Built with Tauri](https://img.shields.io/badge/built%20with-Tauri-24C8DB?style=flat&logo=tauri)](https://tauri.app/)
+[![Vue 3](https://img.shields.io/badge/Vue-3-4FC08D?style=flat&logo=vue.js)](https://vuejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![macOS](https://img.shields.io/badge/macOS-000000?style=flat&logo=apple&logoColor=white)](https://www.apple.com/macos/)
 
 A minimalist desktop chronometer that lives in your macOS menu bar.
 
