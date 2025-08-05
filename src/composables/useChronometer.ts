@@ -1,4 +1,5 @@
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { invoke } from '@tauri-apps/api/core';
 
 export function useChronometer() {
   const startTime = ref<number>(0);
@@ -13,6 +14,15 @@ export function useChronometer() {
     const seconds = totalSeconds % 60;
     
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  });
+
+  // Update tray title when formatted time changes
+  watch(formattedTime, async (newTime) => {
+    try {
+      await invoke('update_tray_title', { title: newTime });
+    } catch (error) {
+      console.error('Failed to update tray title:', error);
+    }
   });
 
   const updateTime = () => {
