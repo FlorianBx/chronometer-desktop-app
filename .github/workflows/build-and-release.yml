@@ -43,3 +43,27 @@ jobs:
         with:
           name: tempo-dmg
           path: src-tauri/target/release/bundle/dmg/*.dmg
+
+      - name: Create Release
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.version != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            VERSION="${{ github.ref_name }}"
+          else
+            VERSION="${{ github.event.inputs.version }}"
+          fi
+          
+          gh release create "$VERSION" \
+            --title "Tempo $VERSION" \
+            --notes "## What's New in Tempo $VERSION
+
+          ### Downloads
+          - **macOS Apple Silicon**: Download the \`.dmg\` file for M1/M2/M3 Mac computers
+
+          ### Installation
+          - **macOS**: Open the \`.dmg\` file and drag Tempo to Applications
+
+          For more information, visit our [GitHub repository](https://github.com/FlorianBx/tempo)." \
+            src-tauri/target/release/bundle/dmg/*.dmg
