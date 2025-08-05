@@ -1,50 +1,29 @@
-name: Build and Release
+name: Simple Build
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
     inputs:
       version:
         description: 'Version to release (e.g., v1.0.0)'
-        required: true
+        required: false
         type: string
-
-env:
-  CARGO_TERM_COLOR: always
-  RUST_BACKTRACE: 1
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   build:
+    runs-on: macos-latest
     permissions:
       contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: 'macos-latest'
-            args: '--target aarch64-apple-darwin'
-            arch: 'aarch64'
-            os: 'macos'
-          - platform: 'macos-latest' 
-            args: '--target x86_64-apple-darwin'
-            arch: 'x86_64'
-            os: 'macos'
-          - platform: 'ubuntu-22.04'
-            args: ''
-            arch: 'x86_64'
-            os: 'linux'
-          - platform: 'windows-latest'
-            args: ''
-            arch: 'x86_64'
-            os: 'windows'
-
-    runs-on: ${{ matrix.platform }}
-    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -52,50 +31,17 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
-
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
-      - name: Install dependencies (Ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-
-      - name: Install frontend dependencies
+      - name: Install dependencies
         run: pnpm install
 
-      - name: Build frontend
-        run: pnpm build
-
       - name: Build Tauri app
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm tauri build
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
         with:
-          tagName: ${{ github.event.inputs.version || github.ref_name }}
-          releaseName: 'Tempo ${{ github.event.inputs.version || github.ref_name }}'
-          releaseBody: |
-            ## What's New in Tempo ${{ github.event.inputs.version || github.ref_name }}
-            
-            ### Downloads
-            - **macOS**: Download the `.dmg` file for Mac computers
-            - **Windows**: Download the `.msi` file for Windows
-            - **Linux**: Download the `.AppImage` file for Linux
-            
-            ### Installation
-            - **macOS**: Open the `.dmg` file and drag Tempo to Applications
-            - **Windows**: Run the `.msi` installer
-            - **Linux**: Make the `.AppImage` executable and run it
-            
-            For more information, visit our [GitHub repository](https://github.com/FlorianBx/tempo).
-          releaseDraft: false
-          prerelease: false
-          args: ${{ matrix.args }}
-          includeUpdaterJson: true
+          name: tempo-dmg
+          path: src-tauri/target/release/bundle/dmg/*.dmg
