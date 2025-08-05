@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{TrayIconBuilder},
-    Manager, Runtime, State, Emitter, WindowEvent,
+    Manager, State, Emitter, WindowEvent,
 };
 
 #[derive(Default)]

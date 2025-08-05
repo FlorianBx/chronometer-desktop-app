@@ -1,5 +1,5 @@
 {
-  "name": "chronometer",
+  "name": "Tempo",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -8,6 +8,7 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
+    "dmg": "tauri build",
     "test": "vitest",
     "test:ui": "vitest --ui"
   },
