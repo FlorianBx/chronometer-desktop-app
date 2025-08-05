@@ -1,42 +1,37 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
+import { onUnmounted } from 'vue';
 import { useChronometer } from './composables/useChronometer';
 import './assets/main.css';
 
 const { 
   isRunning, 
   formattedTime, 
+  error,
   toggleStartPause, 
   reset, 
   cleanup 
 } = useChronometer();
 
-const handleKeydown = (event: KeyboardEvent) => {
-  if (event.key === ' ') {
-    event.preventDefault();
-    toggleStartPause();
-  } else if (event.key.toLowerCase() === 'r') {
-    event.preventDefault();
-    reset();
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydown);
-});
-
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown);
   cleanup();
 });
 </script>
 
 <template>
-  <div class="h-screen w-full bg-black flex flex-col items-center justify-center">
+  <div 
+    class="h-screen w-full bg-black flex flex-col items-center justify-center outline-none"
+    tabindex="0"
+    @keydown.space.prevent="toggleStartPause"
+    @keydown.r.prevent="reset"
+  >
     <div class="text-center">
       <h1 class="text-7xl md:text-8xl lg:text-9xl font-mono text-white tracking-wider mb-12">
         {{ formattedTime }}
       </h1>
+      
+      <div v-if="error" class="mb-4 px-4 py-2 bg-red-900 text-red-300 rounded text-sm">
+        {{ error }}
+      </div>
       
       <div class="flex gap-4 justify-center">
         <button
