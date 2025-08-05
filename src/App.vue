@@ -51,7 +51,7 @@ onUnmounted(() => {
       </div>
       
       <div class="mt-8 text-gray-500 text-sm">
-        <p>Espace : Start/Pause | R : Reset</p>
+        <p>Space: Start/Pause | R: Reset</p>
       </div>
     </div>
   </div>

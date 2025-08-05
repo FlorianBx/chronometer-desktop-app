@@ -14,7 +14,11 @@
       {
         "title": "chronometer",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "closable": true,
+        "minimizable": true,
+        "maximizable": false,
+        "resizable": false
       }
     ],
     "security": {

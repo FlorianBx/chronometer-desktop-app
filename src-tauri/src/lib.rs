@@ -2,14 +2,13 @@ use std::sync::{Arc, Mutex};
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{TrayIconBuilder},
-    Manager, Runtime, State, Emitter,
+    Manager, Runtime, State, Emitter, WindowEvent,
 };
 
-// Global timer state
 #[derive(Default)]
 pub struct TimerState {
     pub is_running: bool,
-    pub elapsed_time: u64, // in milliseconds
+    pub elapsed_time: u64,
     pub start_time: Option<u64>,
 }
 
@@ -44,10 +43,7 @@ fn start_timer(
         state.start_time = Some(now - state.elapsed_time);
         state.is_running = true;
         
-        // Update menu
         update_tray_menu(&app, true)?;
-        
-        // Emit event to frontend
         app.emit("timer-started", ()).map_err(|e| e.to_string())?;
     }
     Ok(())
@@ -71,10 +67,7 @@ fn pause_timer(
         state.is_running = false;
         state.start_time = None;
         
-        // Update menu
         update_tray_menu(&app, false)?;
-        
-        // Emit event to frontend
         app.emit("timer-paused", ()).map_err(|e| e.to_string())?;
     }
     Ok(())
@@ -90,11 +83,8 @@ fn reset_timer(
     state.elapsed_time = 0;
     state.start_time = None;
     
-    // Update menu and title
     update_tray_menu(&app, false)?;
     update_tray_title(app.clone(), "00:00:00".to_string())?;
-    
-    // Emit event to frontend
     app.emit("timer-reset", ()).map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -142,7 +132,6 @@ fn sync_timer_state(
             state.start_time = None;
         }
         
-        // Update tray menu to reflect the new state
         update_tray_menu(&app, is_running)?;
     }
     
@@ -225,7 +214,22 @@ pub fn run() {
         .manage(timer_state)
         .setup(|app| {
             create_tray(app.handle())?;
+            
+            // Hide the dock icon on macOS
+            #[cfg(target_os = "macos")]
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            match event {
+                WindowEvent::CloseRequested { api, .. } => {
+                    // Prevent the window from closing and hide it instead
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+                _ => {}
+            }
         })
         .invoke_handler(tauri::generate_handler![
             greet, 
